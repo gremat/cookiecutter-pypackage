@@ -41,6 +41,7 @@ clean-pyc: ## remove Python file artifacts
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
+	find . -name '.mypy_cache' -exec rm -fr {} +
 
 clean-test: ## remove test and coverage artifacts
 	rm -fr .tox/
@@ -48,45 +49,20 @@ clean-test: ## remove test and coverage artifacts
 	rm -fr htmlcov/
 	rm -fr .pytest_cache
 
-lint/flake8: ## check style with flake8
-	flake8 {{ cookiecutter.project_slug }} tests
+lint/pylint: ## check style with pylint
+	pylint {{ cookiecutter.project_slug }} tests
 
 
-lint: lint/flake8 ## check style
+lint: lint/pylint ## check style
 
 test: ## run tests quickly with the default Python
-{%- if cookiecutter.use_pytest == 'y' %}
 	pytest
-{%- else %}
-	python setup.py test
-{%- endif %}
 
-test-all: ## run tests on every Python version with tox
-	tox
+coverage-plot: test
+	coverage-plot --save htmlcov/treemap.html --no-show coverage.xml
 
-coverage: ## check code coverage quickly with the default Python
-{%- if cookiecutter.use_pytest == 'y' %}
-	coverage run --source {{ cookiecutter.project_slug }} -m pytest
-{%- else %}
-	coverage run --source {{ cookiecutter.project_slug }} setup.py test
-{%- endif %}
-	coverage report -m
-	coverage html
+coverage: test
 	$(BROWSER) htmlcov/index.html
-
-docs: ## generate Sphinx HTML documentation, including API docs
-	rm -f docs/{{ cookiecutter.project_slug }}.rst
-	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ {{ cookiecutter.project_slug }}
-	$(MAKE) -C docs clean
-	$(MAKE) -C docs html
-	$(BROWSER) docs/_build/html/index.html
-
-servedocs: docs ## compile the docs watching for changes
-	watchmedo shell-command -p '*.rst' -c '$(MAKE) -C docs html' -R -D .
-
-release: dist ## package and upload a release
-	twine upload dist/*
 
 dist: clean ## builds source and wheel package
 	python setup.py sdist

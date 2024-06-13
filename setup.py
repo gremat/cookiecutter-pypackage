@@ -6,10 +6,10 @@ setup(
     packages=[],
     version='0.1.0',
     description='Cookiecutter template for a Python package',
-    author='Audrey M. Roy Greenfeld',
+    author='gremat',
     license='BSD',
-    author_email='audrey@feldroy.com',
-    url='https://github.com/audreyfeldroy/cookiecutter-pypackage',
+    author_email='50012463+gremat@users.noreply.github.com',
+    url='https://github.com/gremat/cookiecutter-pypackage',
     keywords=['cookiecutter', 'template', 'package', ],
     python_requires='>=3.10',
     classifiers=[

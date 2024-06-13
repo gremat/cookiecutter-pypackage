@@ -6,63 +6,118 @@ build-backend = "setuptools.build_meta"
 name = "{{cookiecutter.project_slug}}"
 version = "{{cookiecutter.version}}"
 description = "{{cookiecutter.project_short_description}}"
-readme = "README.rst"
+readme = "README.md"
 authors = [
-  {name = "{{cookiecutter.full_name}}", email = "{{cookiecutter.email}}"}
+  {name = "{{cookiecutter.full_name}}", email = "{{cookiecutter.email}}"},
 ]
 maintainers = [
-  {name = "{{cookiecutter.full_name}}", email = "{{cookiecutter.email}}"}
+  {name = "{{cookiecutter.full_name}}", email = "{{cookiecutter.email}}"},
 ]
+requires-python = ">=3.11"
 classifiers = [
-
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
 ]
 license = {text = "{{cookiecutter.open_source_license}}"}
 dependencies = [
-  {% if cookiecutter.command_line_interface.lower() == "typer" -%}
-  "typer"
-{%- endif %}
+  "typer",
+  "rich",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "coverage",  # testing
+    "pylint",  # linting
     "mypy",  # linting
     "pytest",  # testing
-    "ruff"  # linting
+    "coverage",  # testing
+    "pytest-cov",  # testing
 ]
-
-[project.urls]
-
-bugs = "https://github.com/{{cookiecutter.__gh_slug}}/issues"
-changelog = "https://github.com/{{cookiecutter.__gh_slug}}/blob/master/changelog.md"
-homepage = "https://github.com/{{cookiecutter.__gh_slug}}"
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.package-data]
-"*" = ["*.*"]
+"*" = ["py.typed"]
 
-{% if cookiecutter.command_line_interface == 'Yes' %}
 [project.scripts]
-{{cookiecutter.slug}} = "{{cookiecutter.slug}}.cli:app"
-{% endif %}
+{{cookiecutter.project_slug}} = "{{cookiecutter.project_slug}}.{{cookiecutter.project_slug}}:app"
 
+[tool.pylint.main]
+source-roots = ["src"]
+# Note: Replace with `pythonpath` for pylint >= 3.3.0
+init-hook = "from pylint.config import find_default_config_files; import os, sys; sys.path.append(str(next(find_default_config_files()).parent / 'src'))"
+# pythonpath = ["src"]
 
-# Mypy
-# ----
+[tool.pylint.format]
+# Maximum number of characters on a single line.
+max-line-length = 88 # See Black
+
+[tool.pylint."messages control"]
+# disable = ["missing-docstring"]
+
+[tool.pylint.miscellaneous]
+# List of note tags to take in consideration, separated by a comma.
+# Note: We use "FIXME" as a reminder for later that should _not_ block a PR.
+notes = ["XXX", "TODO"]
+
+[tool.isort]
+profile = "black"
+src_paths = ["src", "tests"]
+
+[tool.black]
+# line-length = 79  # PEP8
+# line-length = 88  # Black default
+include = '\.pyi?$'
+exclude = '''
+/(
+    \.eggs
+  | \.git
+  | \.mypy_cache
+  | \.venv
+  | dist
+)/
+'''
 
 [tool.mypy]
-files = "."
-
-# Use strict defaults
-strict = true
+# Target version. If not specified, defaults to the python interpreter
+# version used to run mypy.
+# python_version = "3.11"
+mypy_path = "$MYPY_CONFIG_FILE_DIR/src"
+check_untyped_defs = true
 warn_unreachable = true
 warn_no_return = true
+warn_return_any = true
 
-[[tool.mypy.overrides]]
-# Don't require test functions to include types
-module = "tests.*"
-allow_untyped_defs = true
-disable_error_code = "attr-defined"
+[tool.pytest.ini_options]
+pythonpath = [
+    "src",
+]
+testpaths = [
+    "tests",
+]
+required_plugins = [
+    "pytest-cov",
+]
+addopts = [
+    "--cov",
+    "--cov-report=term-missing",
+    "--cov-report=html",
+    "--cov-report=xml",
+]
 
+[tool.coverage.run]
+branch = true
+relative_files = true
+# Note: Drop trailing module name for multi-module project.
+source = ["src/{{cookiecutter.project_slug}}"]
+omit = [
+    "tests/*",
+]
+
+[tool.coverage.report]
+precision = 2
+# Regexes for lines to exclude from consideration
+exclude_also = [
+    # Don't complain if non-runnable code isn't run:
+    "if __name__ == .__main__.:",
+    ]
